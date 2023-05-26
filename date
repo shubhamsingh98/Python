@@ -1,0 +1,25 @@
+from datetime import datetime, timedelta, date                # to use datetime and add days into date
+#from dateutil.relativedelta import relativedelta        # to add months in datetime object
+#import pandas as pd
+from shared_code.workers import sql_syn_worker
+
+
+def get_dates(starting_date = '2012-01-01'):
+    dates_list = []
+    months =datetime.now().month +((datetime.now().year - 1900) *12+1)
+    start_date = datetime.strptime(starting_date, '%Y-%m-%d').date()   # converting string to datetime object
+    end_date = date(1899,12,31) + relativedelta(months=months)
+    #end_date = (datetime.now().date() + relativedelta(months=1479))      # specifying the end date as current_date + months 
+    while start_date <= end_date:                                      # Generate all date columns till the end date  
+        dates_list.append(start_date)
+        start_date = start_date + timedelta(days=1)
+
+    dates_list.append(datetime.strptime("1900-01-01", '%Y-%m-%d').date())
+    df_dates = pd.DataFrame({                                          # Creating dates dataframe using generated dates from above
+        'Date': dates_list
+    })
+    df_dates["FiscalMonthEndID"] = '12'
+
+
+    sql_syn_worker.convert_df_to_synapse_view(df = df_dates, view_name='DateC', schema_name='temp', sp_name='Load_Date')
+ 
